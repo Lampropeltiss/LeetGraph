@@ -1,8 +1,8 @@
-leetcode_fonts = [
-    'Segoe UI',  # Шрифт Windows
-    'Helvetica',  # Универсальный шрифт
-    'Arial',  # Стандартный Windows
-    'sans-serif'  # Фолбэк
+fonts = [
+    'DejaVu Sans',      # Работает в Linux (GitHub Actions)
+    'Arial',            # Работает в Windows
+    'Helvetica',        # Работает в Mac
+    'sans-serif'        # Фолбэк
 ]
 
 date_formats = {
@@ -12,7 +12,7 @@ date_formats = {
 
 plt_settings = {
     'font.family'    : 'sans-serif',
-    'font.sans-serif': leetcode_fonts,
+    'font.sans-serif': fonts,
     'font.size'      : 12,
     'font.weight'    : 400
 }
