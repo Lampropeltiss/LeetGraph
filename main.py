@@ -45,15 +45,7 @@ if __name__ == '__main__':
     print(f"   Date range: {df['date'].min()} to {df['date'].max()}")
     print(f"   Last date: {df['date'].max()}")
 
-    # Шаг 2: Сохранение статистики в текстовый файл
-    print("\n" + "=" * 60)
-    print("📝 STEP 2: Saving statistics log")
-    print("=" * 60)
-
-    print_stat(df, output_dir, date_formats['table'])
-    print(f"✅ Statistics log saved to {output_dir}/stat_log.txt")
-
-    # Шаг 3: Получение новых данных с LeetCode
+    # Шаг 2: Получение новых данных с LeetCode
     print("\n" + "=" * 60)
     print("🌐 STEP 3: Fetching data from LeetCode API")
     print("=" * 60)
@@ -73,6 +65,14 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"❌ Error fetching data: {e}")
         sys.exit(1)
+
+    # Шаг 3: Сохранение статистики в текстовый файл
+    print("\n" + "=" * 60)
+    print("📝 STEP 2: Saving statistics log")
+    print("=" * 60)
+
+    print_stat(df, output_dir, date_formats['table'])
+    print(f"✅ Statistics log saved to {output_dir}/stat_log.txt")
 
     # Шаг 4: Сохранение данных в CSV
     print("\n" + "=" * 60)
