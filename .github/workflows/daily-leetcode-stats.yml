@@ -1,47 +1,219 @@
+# .github/workflows/daily-leetcode-stats.yml
+# Название: Ежедневное обновление статистики LeetCode
+
 name: Daily LeetCode Stats Update
 
+# Триггеры запуска
 on:
+  # Автоматический запуск по расписанию (каждый день в 00:00 UTC)
   schedule:
     - cron: '0 0 * * *'
+  
+  # Ручной запуск через интерфейс GitHub (кнопка "Run workflow")
   workflow_dispatch:
 
+# Настройки прав доступа для job
+permissions:
+  contents: write  # Разрешаем запись в репозиторий (для коммита)
+
 jobs:
+  # Основная задача обновления статистики
   update-stats:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-latest  # Используем последнюю версию Ubuntu
+    
     steps:
+    # ШАГ 1: Клонирование репозитория
     - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/checkout@v4  # Загружает ваш код в виртуальную машину
       with:
-        python-version: '3.14'
+        fetch-depth: 0  # Загружаем полную историю коммитов (нужно для корректного diff)
 
+    # ШАГ 2: Установка Python
+    - name: Set up Python
+      uses: actions/setup-python@v5  # Официальный action для установки Python
+      with:
+        python-version: '3.14'  # Используем версию, на которой разработан проект
+
+    # ШАГ 3: Установка системных шрифтов (решает проблему findfont)
+    - name: Install system fonts for matplotlib
+      run: |
+        # Обновляем список пакетов
+        sudo apt-get update
+        # Устанавливаем шрифты DejaVu (есть в Ubuntu)
+        sudo apt-get install -y fonts-dejavu-core fonts-dejavu-extra
+        # Очищаем кэш matplotlib, чтобы пересоздать список шрифтов
+        rm -rf ~/.cache/matplotlib
+        # Проверяем, что шрифты установлены
+        fc-list | grep -i dejavu | head -3
+
+    # ШАГ 4: Кэширование зависимостей (ускоряет последующие запуски)
     - name: Cache pip packages
       uses: actions/cache@v3
       with:
-        path: ~/.cache/pip
+        path: ~/.cache/pip  # Путь к кэшу pip
+        # Ключ кэша зависит от ОС и содержимого requirements.txt
         key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        # Если точного совпадения нет, используем последний похожий кэш
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Install dependencies
+    # ШАГ 5: Установка Python зависимостей из requirements.txt
+    - name: Install Python dependencies
       run: |
+        # Обновляем pip до последней версии
         python -m pip install --upgrade pip
+        # Устанавливаем все зависимости из requirements.txt
         pip install -r requirements.txt
+        # Проверяем, что matplotlib установлен и работает
+        python -c "import matplotlib; print(f'Matplotlib version: {matplotlib.__version__}'); print(f'Backend: {matplotlib.get_backend()}')"
 
+    # ШАГ 6: Создание необходимых директорий
+    - name: Create required directories
+      run: |
+        mkdir -p data   # Директория для CSV файла
+        mkdir -p output # Директория для графиков и логов
+        echo "Directories created successfully"
+
+    # ШАГ 7: Инициализация CSV файла (если не существует)
+    - name: Initialize CSV file if not exists
+      run: |
+        if [ ! -f "data/leetcode_ranking.csv" ]; then
+          echo "Creating new CSV file..."
+          echo "date,rank,easy,medium,hard,total_solved" > data/leetcode_ranking.csv
+          echo "CSV file created with headers"
+        else
+          echo "CSV file already exists"
+          echo "First 5 lines:"
+          head -5 data/leetcode_ranking.csv
+        fi
+
+    # ШАГ 8: Запуск основного скрипта
     - name: Run LeetCode stats script
       run: python main.py
+      env:
+        # Указываем, что мы в CI среде (для корректной работы matplotlib)
+        GITHUB_ACTIONS: true
+        # Отключаем интерактивный режим matplotlib
+        MPLBACKEND: Agg
 
-    - name: Commit and push if changes
+    # ШАГ 9: Проверка сгенерированных файлов
+    - name: Verify generated files
       run: |
+        echo "========================================="
+        echo "CHECKING GENERATED FILES"
+        echo "========================================="
+        
+        # Проверяем CSV файл
+        if [ -f "data/leetcode_ranking.csv" ]; then
+          echo "✅ CSV file exists: data/leetcode_ranking.csv"
+          echo "   File size: $(wc -c < data/leetcode_ranking.csv) bytes"
+          echo "   Total lines: $(wc -l < data/leetcode_ranking.csv)"
+          echo "   Last 3 lines:"
+          tail -3 data/leetcode_ranking.csv
+        else
+          echo "❌ CSV file NOT found!"
+          exit 1
+        fi
+        
+        # Проверяем текстовый лог
+        if [ -f "output/stat_log.txt" ]; then
+          echo "✅ Statistics log exists: output/stat_log.txt"
+          echo "   File size: $(wc -c < output/stat_log.txt) bytes"
+        else
+          echo "⚠️ Statistics log NOT found (optional)"
+        fi
+        
+        # Проверяем PNG график
+        if [ -f "output/leetcode_stat_graph.png" ]; then
+          echo "✅ Graph file exists: output/leetcode_stat_graph.png"
+          echo "   File size: $(wc -c < output/leetcode_stat_graph.png) bytes"
+          # Проверяем, что это действительно PNG файл
+          file output/leetcode_stat_graph.png
+        else
+          echo "❌ Graph file NOT found!"
+          exit 1
+        fi
+        
+        echo "========================================="
+        echo "All required files generated successfully"
+        echo "========================================="
+
+    # ШАГ 10: Отладка - проверка состояния git перед коммитом
+    - name: Debug git status
+      run: |
+        echo "========================================="
+        echo "GIT STATUS BEFORE COMMIT"
+        echo "========================================="
+        git status
+        
+        echo ""
+        echo "========================================="
+        echo "FILES THAT HAVE CHANGES"
+        echo "========================================="
+        git diff --name-only || echo "No changes detected"
+        
+        echo ""
+        echo "========================================="
+        echo "SPECIFIC FILE DIFF"
+        echo "========================================="
+        if ! git diff --quiet data/leetcode_ranking.csv; then
+          echo "CSV file has changes:"
+          git diff data/leetcode_ranking.csv | head -20
+        else
+          echo "CSV file has NO changes"
+        fi
+
+    # ШАГ 11: Коммит и пуш изменений
+    - name: Commit and push changes
+      run: |
+        # Настраиваем пользователя для коммита
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add data/ output/
-        if ! git diff --quiet && ! git diff --staged --quiet; then
-          git commit -m "Auto-update LeetCode stats [skip ci]"
-          git push
+        
+        # Принудительно добавляем файлы (даже если в .gitignore)
+        git add -f data/leetcode_ranking.csv
+        git add -f output/leetcode_stat_graph.png
+        git add -f output/stat_log.txt
+        
+        # Показываем, что будет закоммичено
+        echo "Files staged for commit:"
+        git diff --staged --name-only
+        
+        # Проверяем, есть ли изменения для коммита
+        if git diff --staged --quiet; then
+          echo "========================================="
+          echo "⏭️ No changes to commit"
+          echo "========================================="
+          echo "Possible reasons:"
+          echo "1. Data hasn't changed since last run"
+          echo "2. Files are being ignored by .gitignore"
+          echo "3. Git repository issues"
+          
+          # Дополнительная диагностика
+          echo ""
+          echo "Checking if files are tracked by git:"
+          git ls-files data/leetcode_ranking.csv || echo "CSV not tracked"
+          git ls-files output/leetcode_stat_graph.png || echo "PNG not tracked"
         else
-          echo "No changes to commit"
+          # Делаем коммит с пропуском CI (чтобы не вызвать бесконечный цикл)
+          git commit -m "Auto-update LeetCode stats [skip ci]"
+          
+          # Отправляем изменения в репозиторий
+          git push
+          
+          echo "========================================="
+          echo "✅ Changes committed and pushed successfully!"
+          echo "========================================="
+          echo "Commit hash:"
+          git rev-parse HEAD
         fi
+
+    # ШАГ 12: Финальное уведомление (опционально)
+    - name: Completion message
+      run: |
+        echo "========================================="
+        echo "🎉 LEETCODE STATS UPDATE WORKFLOW COMPLETED"
+        echo "========================================="
+        echo "Time: $(date)"
+        echo "Status: Success"
+        echo "========================================="
