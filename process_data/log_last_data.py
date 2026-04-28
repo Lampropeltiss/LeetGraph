@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-def print_stat(df, output_dir, date_format='%d %b', filename='stat_log'):
+def log_last(df, output_dir, date_format='%d %b', filename='stat_log'):
     file_path = os.path.join(output_dir, f"{filename}.txt")
     os.makedirs(output_dir, exist_ok=True)
 

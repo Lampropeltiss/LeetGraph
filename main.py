@@ -3,7 +3,7 @@ import os
 import sys
 
 from process_data.data_prepare import prepare_data
-from process_data.log_last_data import print_stat
+from process_data.log_last_data import log_last
 from process_data.data_parser import LeetCodeClient
 from process_data.data_saver import append_to_csv
 from theme import plt_settings, date_formats
@@ -26,28 +26,9 @@ if __name__ == '__main__':
     print(f"   Python version: {sys.version}")
     print(f"   Working directory: {os.getcwd()}")
 
-    # Шаг 1: Подготовка данных
+    # Шаг 1: Получение новых данных с LeetCode
     print("\n" + "=" * 60)
-    print("📊 STEP 1: Preparing existing data")
-    print("=" * 60)
-
-    # Проверяем существование файла
-    if os.path.exists(data_filepath):
-        print(f"✅ Data file exists: {data_filepath}")
-        file_size = os.path.getsize(data_filepath)
-        print(f"   File size: {file_size} bytes")
-    else:
-        print(f"⚠️ Data file does not exist yet: {data_filepath}")
-
-    df = prepare_data(data_filepath)
-    print(f"✅ Data prepared successfully")
-    print(f"   DataFrame shape: {df.shape}")
-    print(f"   Date range: {df['date'].min()} to {df['date'].max()}")
-    print(f"   Last date: {df['date'].max()}")
-
-    # Шаг 2: Получение новых данных с LeetCode
-    print("\n" + "=" * 60)
-    print("🌐 STEP 3: Fetching data from LeetCode API")
+    print("🌐 STEP 1: Fetching data from LeetCode API")
     print("=" * 60)
 
     print(f"   Connecting to LeetCode API for user: {leetcode_username}")
@@ -66,12 +47,31 @@ if __name__ == '__main__':
         print(f"❌ Error fetching data: {e}")
         sys.exit(1)
 
-    # Шаг 3: Сохранение статистики в текстовый файл
+    # Шаг 2: Подготовка данных
     print("\n" + "=" * 60)
-    print("📝 STEP 2: Saving statistics log")
+    print("📊 STEP 2: Preparing existing data")
     print("=" * 60)
 
-    print_stat(df, output_dir, date_formats['table'])
+    # Проверяем существование файла
+    if os.path.exists(data_filepath):
+        print(f"✅ Data file exists: {data_filepath}")
+        file_size = os.path.getsize(data_filepath)
+        print(f"   File size: {file_size} bytes")
+    else:
+        print(f"⚠️ Data file does not exist yet: {data_filepath}")
+
+    df = prepare_data(data_filepath)
+    print(f"✅ Data prepared successfully")
+    print(f"   DataFrame shape: {df.shape}")
+    print(f"   Date range: {df['date'].min()} to {df['date'].max()}")
+    print(f"   Last date: {df['date'].max()}")
+
+    # Шаг 3: Сохранение статистики в текстовый файл
+    print("\n" + "=" * 60)
+    print("📝 STEP 3: Saving statistics log")
+    print("=" * 60)
+
+    log_last(df, output_dir, date_formats['table'])
     print(f"✅ Statistics log saved to {output_dir}/stat_log.txt")
 
     # Шаг 4: Сохранение данных в CSV
