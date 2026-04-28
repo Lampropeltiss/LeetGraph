@@ -33,6 +33,6 @@ def log_last(df, output_dir, date_format='%d %b', filename='stat_log'):
 
         # Записываем в файл без индекса (номеров строк)
         f.write(subset_14.to_string(index=False) + "\n")
-        f.write("\n" + "=" * 55 + "\n")
+        f.write("=" * 55 + "\n")
 
     print(f"Статистика успешно сохранена в файл: {file_path}")
