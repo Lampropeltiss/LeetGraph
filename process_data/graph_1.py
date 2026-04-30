@@ -12,7 +12,7 @@ def manage_rank_graph(df, ax1, username):
 
     # Статистика для guide линий
     best_rank = df['rank'].min()
-    mean_rank = round(df['rank'].mean() / 50) * 50
+    current_rank = df['rank'].iloc[-1]
 
     # Удаляем строки с NaN для построения непрерывной линии
     df_rank_clean = df.dropna(subset=['rank'])
@@ -33,6 +33,13 @@ def manage_rank_graph(df, ax1, username):
                 linewidth=1.5,
                 alpha=0.7,
                 label=f'Best: {format_large_numbers(best_rank, None)}')
+
+    ax1.axhline(y=current_rank,
+                color=palette["accent"],
+                linestyle='--',
+                linewidth=1.5,
+                alpha=0.7,
+                label=f'Last: {format_large_numbers(current_rank, None)}')
 
     # Настройки верхнего графика
     ax1.set_title(f"LeetCode Rank Progression for {username}",
