@@ -47,36 +47,9 @@ if __name__ == '__main__':
         print(f"❌ Error fetching data: {e}")
         sys.exit(1)
 
-    # Шаг 2: Подготовка данных
+    # Шаг 2: Сохранение данных в CSV
     print("\n" + "=" * 60)
-    print("📊 STEP 2: Preparing existing data")
-    print("=" * 60)
-
-    # Проверяем существование файла
-    if os.path.exists(data_filepath):
-        print(f"✅ Data file exists: {data_filepath}")
-        file_size = os.path.getsize(data_filepath)
-        print(f"   File size: {file_size} bytes")
-    else:
-        print(f"⚠️ Data file does not exist yet: {data_filepath}")
-
-    df = prepare_data(data_filepath)
-    print(f"✅ Data prepared successfully")
-    print(f"   DataFrame shape: {df.shape}")
-    print(f"   Date range: {df['date'].min()} to {df['date'].max()}")
-    print(f"   Last date: {df['date'].max()}")
-
-    # Шаг 3: Сохранение статистики в текстовый файл
-    print("\n" + "=" * 60)
-    print("📝 STEP 3: Saving statistics log")
-    print("=" * 60)
-
-    log_last(df, output_dir, date_formats['table'])
-    print(f"✅ Statistics log saved to {output_dir}/stat_log.txt")
-
-    # Шаг 4: Сохранение данных в CSV
-    print("\n" + "=" * 60)
-    print("💾 STEP 4: Saving data to CSV")
+    print("💾 STEP 2: Saving data to CSV")
     print("=" * 60)
 
     result = append_to_csv(stats, data_filepath)
@@ -93,6 +66,33 @@ if __name__ == '__main__':
     if os.path.exists(data_filepath):
         new_size = os.path.getsize(data_filepath)
         print(f"   CSV file size: {new_size} bytes")
+
+    # Шаг 3: Подготовка данных
+    print("\n" + "=" * 60)
+    print("📊 STEP 3: Preparing existing data")
+    print("=" * 60)
+
+    # Проверяем существование файла
+    if os.path.exists(data_filepath):
+        print(f"✅ Data file exists: {data_filepath}")
+        file_size = os.path.getsize(data_filepath)
+        print(f"   File size: {file_size} bytes")
+    else:
+        print(f"⚠️ Data file does not exist yet: {data_filepath}")
+
+    df = prepare_data(data_filepath)
+    print(f"✅ Data prepared successfully")
+    print(f"   DataFrame shape: {df.shape}")
+    print(f"   Date range: {df['date'].min()} to {df['date'].max()}")
+    print(f"   Last date: {df['date'].max()}")
+
+    # Шаг 4: Сохранение статистики в текстовый файл
+    print("\n" + "=" * 60)
+    print("📝 STEP 4: Saving statistics log")
+    print("=" * 60)
+
+    log_last(df, output_dir, date_formats['table'])
+    print(f"✅ Statistics log saved to {output_dir}/stat_log.txt")
 
     # Шаг 5: Обновляем DataFrame с новыми данными
     print("\n" + "=" * 60)
