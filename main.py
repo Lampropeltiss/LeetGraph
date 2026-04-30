@@ -20,11 +20,11 @@ if __name__ == '__main__':
     print("=" * 60)
 
     print(f"\n📁 Configuration:")
-    print(f"   Username: {leetcode_username}")
-    print(f"   Data file: {data_filepath}")
-    print(f"   Output dir: {output_dir}")
-    print(f"   Python version: {sys.version}")
-    print(f"   Working directory: {os.getcwd()}")
+    print(f"        Username: {leetcode_username}")
+    print(f"        Data file: {data_filepath}")
+    print(f"        Output dir: {output_dir}")
+    print(f"        Python version: {sys.version}")
+    print(f"        Working directory: {os.getcwd()}")
 
     # Шаг 1: Получение новых данных с LeetCode
     print("\n" + "=" * 60)
@@ -37,12 +37,12 @@ if __name__ == '__main__':
     try:
         stats = client.get_stats()
         print(f"✅ Data fetched successfully:")
-        print(f"   Date: {stats['date']}")
-        print(f"   Rank: {stats['rank']:,}")
-        print(f"   Easy: {stats['easy']}")
-        print(f"   Medium: {stats['medium']}")
-        print(f"   Hard: {stats['hard']}")
-        print(f"   Total solved: {stats['total_solved']}")
+        print(f"        Date: {stats['date']}")
+        print(f"        Rank: {stats['rank']:,}")
+        print(f"        Easy: {stats['easy']}")
+        print(f"        Medium: {stats['medium']}")
+        print(f"        Hard: {stats['hard']}")
+        print(f"        Total solved: {stats['total_solved']}")
     except Exception as e:
         print(f"❌ Error fetching data: {e}")
         sys.exit(1)
@@ -51,6 +51,10 @@ if __name__ == '__main__':
     print("\n" + "=" * 60)
     print("💾 STEP 2: Saving data to CSV")
     print("=" * 60)
+
+    if os.path.exists(data_filepath):
+        old_size = os.path.getsize(data_filepath)
+        print(f"   CSV file size: {old_size} bytes")
 
     result = append_to_csv(stats, data_filepath)
     print(f"   Result: {result}")
@@ -64,8 +68,8 @@ if __name__ == '__main__':
 
     # Проверяем, изменился ли CSV после записи
     if os.path.exists(data_filepath):
-        new_size = os.path.getsize(data_filepath)
-        print(f"   CSV file size: {new_size} bytes")
+        old_size = os.path.getsize(data_filepath)
+        print(f"   CSV file size: {old_size} bytes")
 
     # Шаг 3: Подготовка данных
     print("\n" + "=" * 60)
@@ -82,9 +86,8 @@ if __name__ == '__main__':
 
     df = prepare_data(data_filepath)
     print(f"✅ Data prepared successfully")
-    print(f"   DataFrame shape: {df.shape}")
-    print(f"   Date range: {df['date'].min()} to {df['date'].max()}")
-    print(f"   Last date: {df['date'].max()}")
+    print(f"📅 First date: {df['date'].min()}")
+    print(f"📅 Last date: {df['date'].max()}")
 
     # Шаг 4: Сохранение статистики в текстовый файл
     print("\n" + "=" * 60)
@@ -99,36 +102,32 @@ if __name__ == '__main__':
     print("🔄 STEP 5: Reloading data for graph")
     print("=" * 60)
 
-    df = prepare_data(data_filepath)
-    print(f"✅ Data reloaded: {df.shape[0]} records")
-    print(f"   Last record: {df.iloc[-1]['date'].strftime('%Y-%m-%d') if not df.empty else 'None'}")
+    if result != "skipped":
+        print(f"        CSV has changed - generating new graph...")
+        print(f"        Applying matplotlib settings...")
+        plt.rcParams.update(plt_settings)
+        print(f"        Matplotlib backend: {plt.get_backend()}")
 
-    # Шаг 6: Создание графика
-    print("\n" + "=" * 60)
-    print("📈 STEP 6: Generating graph")
-    print("=" * 60)
+        print(f"        Building graphic...")
+        fig = build_graphic(plt, df, leetcode_username, date_formats['graph'])
 
-    print(f"   Applying matplotlib settings...")
-    plt.rcParams.update(plt_settings)
-    print(f"   Matplotlib backend: {plt.get_backend()}")
+        # Сохраняем график
+        output_path = f"{output_dir}/leetcode_stat_graph.png"
+        print(f"        Saving graph to: {output_path}")
+        fig.savefig(output_path, dpi=300, bbox_inches='tight')
+        plt.close(fig)
 
-    print(f"   Building graphic...")
-    fig = build_graphic(plt, df, leetcode_username, date_formats['graph'])
-
-    # Сохраняем график
-    output_path = f"{output_dir}/leetcode_stat_graph.png"
-    print(f"   Saving graph to: {output_path}")
-    fig.savefig(output_path, dpi=300, bbox_inches='tight')
-    plt.close(fig)
-
-    # Проверяем, создался ли файл
-    if os.path.exists(output_path):
-        file_size = os.path.getsize(output_path)
-        print(f"✅ Graph saved successfully: {output_path}")
-        print(f"   File size: {file_size} bytes ({file_size / 1024:.2f} KB)")
+        # Проверяем, создался ли файл
+        if os.path.exists(output_path):
+            file_size = os.path.getsize(output_path)
+            print(f"✅ Graph saved successfully: {output_path}")
+            print(f"   File size: {file_size} bytes ({file_size / 1024:.2f} KB)")
+        else:
+            print(f"❌ Failed to save graph!")
+            sys.exit(1)
     else:
-        print(f"❌ Failed to save graph!")
-        sys.exit(1)
+        print(f"⏭️ No changes detected in CSV - skipping graph generation")
+        print(f"   Graph was not updated (no new data available)")
 
     # Шаг 7: Финальная проверка
     print("\n" + "=" * 60)

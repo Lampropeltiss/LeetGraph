@@ -35,4 +35,14 @@ def log_last(df, output_dir, date_format='%d %b', filename='stat_log'):
         f.write(subset_14.to_string(index=False) + "\n")
         f.write("=" * 55 + "\n")
 
-    print(f"Статистика успешно сохранена в файл: {file_path}")
+        print(f"📄 Статистика успешно сохранена в файл: {file_path}")
+
+        # Вывод последних 3 строк
+        print(f"📄 Последние 3 строки:")
+        print("   " + "-" * 55)
+        for _, row in subset_14.tail(3).iterrows():
+            print(
+                f"      {row['date']:<20} {row['rank_up']:>8} {row['easy_new']:>8} {row['medium_new']:>10} {row['hard_new']:>8}")
+        print("   " + "-" * 55)
+
+        return file_path
