@@ -3,13 +3,11 @@
 
 name: Daily LeetCode Stats Update
 
-# Триггеры запуска
 on:
-  # Автоматический запуск по расписанию (каждый день в 00:00 UTC)
   schedule:
     - cron: '0 20 * * *'
+    - cron: '0 10 * * *'
   
-  # Ручной запуск через интерфейс GitHub (кнопка "Run workflow")
   workflow_dispatch:
 
 # Настройки прав доступа для job
