@@ -6,8 +6,9 @@ from process_data.data_prepare import prepare_data
 from process_data.log_last_data import log_last
 from process_data.data_parser import LeetCodeClient
 from process_data.data_saver import append_to_csv
+from process_data.pie_chart import manage_pie_chart
 from theme import plt_settings, date_formats
-from process_data.create_graph import build_graphic
+from process_data.create_graph import build_graphics
 
 if __name__ == '__main__':
     # Параметры
@@ -109,22 +110,28 @@ if __name__ == '__main__':
         print(f"        Matplotlib backend: {plt.get_backend()}")
 
         print(f"        Building graphic...")
-        fig = build_graphic(plt, df, leetcode_username, date_formats['graph'])
+        fig_1, fig_2 = build_graphics(plt, df, leetcode_username, date_formats['graph'])
 
         # Сохраняем график
-        output_path = f"{output_dir}/leetcode_stat_graph.png"
-        print(f"        Saving graph to: {output_path}")
-        fig.savefig(output_path, dpi=300, bbox_inches='tight')
-        plt.close(fig)
+        output_path_1 = f"{output_dir}/leetcode_stat_graph.png"
+        print(f"        Saving graph 1 to: {output_path_1}")
+        fig_1.savefig(output_path_1, dpi=300, bbox_inches='tight')
+        plt.close(fig_1)
 
-        # Проверяем, создался ли файл
-        if os.path.exists(output_path):
-            file_size = os.path.getsize(output_path)
-            print(f"✅ Graph saved successfully: {output_path}")
-            print(f"   File size: {file_size} bytes ({file_size / 1024:.2f} KB)")
-        else:
-            print(f"❌ Failed to save graph!")
-            sys.exit(1)
+        # Добавляем круговую диаграмму
+        output_path_2 = f"{output_dir}/leetcode_pie_chart.png"
+        print(f"        Saving graph 2 to: {output_path_2}")
+        fig_2.savefig(output_path_2, dpi=300, bbox_inches='tight')
+        plt.close(fig_2)
+
+        for output_path in [output_path_1, output_path_2]:
+            if os.path.exists(output_path):
+                file_size = os.path.getsize(output_path)
+                print(f"✅ Graph saved successfully: {output_path}")
+                print(f"   File size: {file_size} bytes ({file_size / 1024:.2f} KB)")
+            else:
+                print(f"❌ Failed to save graph!")
+                sys.exit(1)
     else:
         print(f"⏭️ No changes detected in CSV - skipping graph generation")
         print(f"   Graph was not updated (no new data available)")
@@ -138,7 +145,8 @@ if __name__ == '__main__':
     files_to_check = [
         data_filepath,
         f"{output_dir}/stat_log.txt",
-        f"{output_dir}/leetcode_stat_graph.png"
+        f"{output_dir}/leetcode_stat_graph.png",
+        f"{output_dir}/leetcode_pie_chart.png"
     ]
 
     for file_path in files_to_check:
